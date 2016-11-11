@@ -146,7 +146,7 @@ Colour WS2812B_get_pixel(WS2812B *self, unsigned int x, unsigned int y)
 int WS2812B_set_row(WS2812B *self, int row, Colour c)
 {
   if (row >= self->rows || row < 0) return 1;
-  Colour _c = c;
+  Colour _c = _WS2812B_cc(c, self->flags & WS2812B_SCHEMES);
 
   for (unsigned int i = 0; i < self->columns; i++)
     _WS2812B_spf(self, i, row, _c);
@@ -157,7 +157,7 @@ int WS2812B_set_row(WS2812B *self, int row, Colour c)
 int WS2812B_set_column(WS2812B *self, int col, Colour c)
 {
   if (col >= self->columns || col < 0) return 1;
-  Colour _c = c;
+  Colour _c = _WS2812B_cc(c, self->flags & WS2812B_SCHEMES);
 
   for (unsigned int i = 0; i < self->rows; i++)
     _WS2812B_spf(self, col, i, _c);
