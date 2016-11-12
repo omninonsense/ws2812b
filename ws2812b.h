@@ -77,7 +77,7 @@ typedef struct {
 } WS2812B;
 
 int WS2812B_init(WS2812B *self, int pin, Colour *pixels, int flags, unsigned int columns, unsigned int rows);
-void WS2812B_sync(WS2812B *ctrl);
+void WS2812B_sync(WS2812B *self);
 
 int WS2812B_set_pixel(WS2812B *self, unsigned int x, unsigned int y, Colour c);
 int WS2812B_set_all(WS2812B *self, Colour c);
