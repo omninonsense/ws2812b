@@ -42,8 +42,15 @@
 #define cli()
 #define sei()
 #define _delay_us(x) ((volatile int)x)
+#endif // Arduino_h
+
+#ifndef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
 
+#ifndef MAX
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
 
 #define WS2812B_ZIGZAG_ODD  (1 << 0)
 #define WS2812B_ZIGZAG_EVEN (1 << 1)
@@ -66,6 +73,11 @@ typedef struct {
 #endif
 
 typedef struct {
+  char id;
+  Colour col;
+} ColourPalette;
+
+typedef struct {
   volatile uint8_t *port;
   uint8_t bit;
   int pin;
@@ -74,23 +86,31 @@ typedef struct {
   int flags;
   unsigned int columns;
   unsigned int rows;
+  unsigned int palette_size;
+  unsigned int palette_used;
+  ColourPalette *palette;
 } WS2812B;
 
 int WS2812B_init(WS2812B *self, int pin, Colour *pixels, int flags, unsigned int columns, unsigned int rows);
 void WS2812B_sync(WS2812B *self);
 
+int WS2812B_init_palette(WS2812B *self, ColourPalette* palette, unsigned int size);
+int WS2812B_add_colour(WS2812B *self, char id, Colour c);
+
 int WS2812B_set_pixel(WS2812B *self, unsigned int x, unsigned int y, Colour c);
 int WS2812B_set_all(WS2812B *self, Colour c);
 int WS2812B_set_pixel_at_offset(WS2812B *self, uint16_t offset, Colour c);
 Colour WS2812B_get_pixel(WS2812B *self, unsigned int x, unsigned int y);
-int WS2812B_set_row(WS2812B *self, int row, Colour c);
-int WS2812B_set_column(WS2812B *self, int col, Colour c);
+int WS2812B_set_row(WS2812B *self, unsigned int row, Colour c);
+int WS2812B_set_column(WS2812B *self, unsigned int col, Colour c);
+int WS2812B_render(WS2812B *self, const char *ascii_art);
 
 // Helper functions
 int _WS2812B_addr(unsigned int x, unsigned int y, unsigned int c, unsigned int *addr); // get addr of (x,y) inside flat array; dereferencing twice is slower
 int _WS2812B_spf(WS2812B *self, unsigned int x, unsigned int y, Colour c); // set pixel fast
-inline unsigned int _WS2812B_x(unsigned int addr, unsigned int c); // get x
-inline unsigned int _WS2812B_y(unsigned int addr, unsigned int c); // get y
+unsigned int _WS2812B_x(unsigned int addr, unsigned int c); // get x
+unsigned int _WS2812B_y(unsigned int addr, unsigned int c); // get y
+Colour _WS2812B_lupc(WS2812B *self, char id); // look up palette colour
 
 Colour _WS2812B_cc(Colour c, int order); // convert for output
 

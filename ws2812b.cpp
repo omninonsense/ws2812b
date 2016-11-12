@@ -1,4 +1,5 @@
 #include "ws2812b.h"
+#include "string.h"
 
 int WS2812B_init(WS2812B *self, int pin, Colour *pixels, int flags, unsigned int columns, unsigned int rows)
 {
@@ -106,6 +107,23 @@ void WS2812B_sync(WS2812B *self)
    */
 }
 
+int WS2812B_init_palette(WS2812B *self, ColourPalette* palette, unsigned int size)
+{
+  self->palette_size = size;
+  self->palette_used = 0;
+  self->palette = palette;
+
+  return 0;
+}
+
+int WS2812B_add_colour(WS2812B *self, char id, Colour c)
+{
+  if (self->palette_used >= self->palette_size) return 1;
+  self->palette[self->palette_used++] = {id, c};
+
+  return 0;
+}
+
 int WS2812B_set_pixel(WS2812B *self, unsigned int x, unsigned int y, Colour c)
 {
   return _WS2812B_spf(self, x, y, _WS2812B_cc(c, self->flags & WS2812B_SCHEMES));
@@ -143,9 +161,9 @@ Colour WS2812B_get_pixel(WS2812B *self, unsigned int x, unsigned int y)
   return self->pixels[offset];
 }
 
-int WS2812B_set_row(WS2812B *self, int row, Colour c)
+int WS2812B_set_row(WS2812B *self, unsigned int row, Colour c)
 {
-  if (row >= self->rows || row < 0) return 1;
+  if (row >= self->rows) return 1;
   Colour _c = _WS2812B_cc(c, self->flags & WS2812B_SCHEMES);
 
   for (unsigned int i = 0; i < self->columns; i++)
@@ -154,15 +172,30 @@ int WS2812B_set_row(WS2812B *self, int row, Colour c)
   return 0;
 }
 
-int WS2812B_set_column(WS2812B *self, int col, Colour c)
+int WS2812B_set_column(WS2812B *self, unsigned int col, Colour c)
 {
-  if (col >= self->columns || col < 0) return 1;
+  if (col >= self->columns) return 1;
   Colour _c = _WS2812B_cc(c, self->flags & WS2812B_SCHEMES);
 
   for (unsigned int i = 0; i < self->rows; i++)
     _WS2812B_spf(self, col, i, _c);
 
   return 0;
+}
+
+int WS2812B_render(WS2812B *self, const char *ascii_art)
+{
+  size_t count = MIN(strlen(ascii_art), self->count);
+
+  for (size_t i = 0; i < count; ++i) {
+    unsigned int x, y;
+    x = _WS2812B_x(i, self->columns);
+    y = _WS2812B_y(i, self->columns);
+
+    WS2812B_set_pixel(self, x, y, _WS2812B_lupc(self, ascii_art[i]));
+  }
+
+  return self->count - strlen(ascii_art);
 }
 
 /* Helper functions */
@@ -195,8 +228,18 @@ unsigned int _WS2812B_x(unsigned int addr, unsigned int c) {
   return addr % c;
 }
 
-unsigned int _WS2812B_y(unsigned int addr, int c) {
+unsigned int _WS2812B_y(unsigned int addr, unsigned int c) {
   return addr / c;
+}
+
+Colour _WS2812B_lupc(WS2812B *self, char id)
+{
+  for (size_t i = 0; i < self->palette_used; ++i) {
+    ColourPalette p = self->palette[i];
+    if (p.id == id) return p.col;
+  }
+
+  return {0,0,0};
 }
 
 Colour _WS2812B_cc(Colour c, int order)
