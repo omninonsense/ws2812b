@@ -123,7 +123,7 @@ int WS2812B_set_all(WS2812B *self, Colour c)
   Colour _c = _WS2812B_cc(c, self->flags & WS2812B_SCHEMES);
   uint16_t count = self->count;
 
-  while (--count) self->pixels[count] = _c;
+  while (count) self->pixels[--count] = _c;
 
   return 0;
 }
