@@ -119,8 +119,15 @@ int WS2812B_init_palette(WS2812B *self, ColourPalette* palette, unsigned int siz
 int WS2812B_add_colour(WS2812B *self, char id, Colour c)
 {
   if (self->palette_used >= self->palette_size) return 1;
-  self->palette[self->palette_used++] = {id, c};
 
+  for (size_t i = 0; i < self->palette_used; ++i) {
+    if (self->palette[i].id == id) {
+      self->palette[i].c = c;
+      return 0;
+    }
+  }
+
+  self->palette[self->palette_used++] = {id, c};
   return 0;
 }
 
