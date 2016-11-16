@@ -122,7 +122,7 @@ int WS2812B_add_colour(WS2812B *self, char id, Colour c)
 
   for (size_t i = 0; i < self->palette_used; ++i) {
     if (self->palette[i].id == id) {
-      self->palette[i].c = c;
+      self->palette[i].col = c;
       return 0;
     }
   }
